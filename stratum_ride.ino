@@ -1,7 +1,7 @@
 #define FOOTRELEASE_PIN 4
 #define THROTTLE_PIN 5
 #define REVERSESWTICH_PIN 6
-
+#define BRAKE_PIN A0
 #define BUZZER_PIN 8
 #define THROTTLE_ZERO 0
 #define THROTTLE_MAX 255
@@ -14,7 +14,7 @@ int index = 0;                  // the index of the current reading
 int total = 0;                  // the running total
 int throttlepos = 0;                // the average
 
-int BRAKE_PIN = A0;
+
 
 boolean footrelease = false;
 boolean reverse = false;
