@@ -65,15 +65,15 @@ void loop() {
   checkArmState();
   updateThrottle();
   updateReverse();
-  if(armed == true && brake == armed){
-    brake = false;
-    setBrake();
+  if(armed){
+    setMotor();
+    if(brake == armed){
+      brake = false;
+      setBrake();
+    }
   } else {
     brake = true;
     setBrake();
-  }
-  if(armed){
-    setMotor();
   }
 }
 
@@ -90,6 +90,7 @@ bool initCheck() {
 
 void setBrake(){
   if(brake){
+    setMotor();
     digitalWrite(BRAKE_PIN, LOW);
   } else {
     digitalWrite(BRAKE_PIN, HIGH);
