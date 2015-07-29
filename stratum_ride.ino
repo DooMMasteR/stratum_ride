@@ -20,7 +20,7 @@ boolean footrelease = false;
 boolean reverse = false;
 boolean brake = true;
 boolean armed = false;
-int current_speed = 0;
+byte current_speed = 0;
 
 void setup() {
   //init average array for analoge input
@@ -90,7 +90,7 @@ bool initCheck() {
 
 void setBrake(){
   if(brake){
-    setMotor();
+    setMotor(0);
     digitalWrite(BRAKE_PIN, LOW);
   } else {
     digitalWrite(BRAKE_PIN, HIGH);
@@ -131,6 +131,10 @@ void updateThrottle(){
 }
 
 void setMotor(){
+  setMotor(current_speed);
+}
+
+void setMotor(byte speed){
   
 }
 
