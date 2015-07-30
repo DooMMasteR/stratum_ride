@@ -2,6 +2,8 @@
 #define THROTTLE_PIN A0
 #define REVERSESWTICH_PIN 6
 #define BRAKE_PIN 7
+#define FW_PIN 9
+#define REV_PIN 10
 #define BUZZER_PIN 13
 #define THROTTLE_ZERO 185
 #define THROTTLE_MAX 860
@@ -27,6 +29,7 @@ void setup() {
   for (int i = 0; i < numReadings; i++)
     readings[i] = 0;  
   Serial.begin(9600);
+  //setPwmFrequency(9,8);
   //beep once for 500ms
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(BUZZER_PIN, HIGH);
@@ -81,7 +84,7 @@ void loop() {
   }
 }
 
-bool initCheck() {
+boolean initCheck() {
   for(int i = 0; i < 5; i++){
     if(!digitalRead(FOOTRELEASE_PIN) && !digitalRead(REVERSESWTICH_PIN) && analogRead(THROTTLE_PIN) < THROTTLE_ZERO + (THROTTLE_THRESH /2)) {
       return true;
@@ -103,7 +106,7 @@ void setBrake(){
 
 boolean checkArmState(){
   if(digitalRead(FOOTRELEASE_PIN)){
-    delay(20);
+    delay(10);
     if(digitalRead(FOOTRELEASE_PIN) && (analogRead(THROTTLE_PIN) < THROTTLE_ZERO + (THROTTLE_THRESH /2) || armed)){
       armed = true;
       return armed;
@@ -124,10 +127,11 @@ boolean checkArmState(){
 }
 
 void updateReverse() {  
-  if(digitalRead(REVERSESWTICH_PIN)){
-    delay(20);
-    if(digitalRead(REVERSESWTICH_PIN)){
-      reverse = true;      
+  if(digitalRead(REVERSESWTICH_PIN) == HIGH){
+    delay(10);
+    if(digitalRead(REVERSESWTICH_PIN) == HIGH){
+      reverse = true;   
+      return;
     }
   }
   reverse = false;
@@ -144,7 +148,7 @@ void updateThrottle(){
     index = 0;                           
   throttlepos = total / numReadings;
   current_speed = map(throttlepos, THROTTLE_ZERO + THROTTLE_THRESH, THROTTLE_MAX, 0, 255);
-  if(throttlepos >= THROTTLE_MAX) current_speed = 255;
+  if(throttlepos >= THROTTLE_MAX && current_speed > 250) current_speed = 255;
   if(throttlepos <= THROTTLE_ZERO + THROTTLE_THRESH) current_speed = 0;
 }
 
@@ -153,6 +157,44 @@ void setMotor(){
 }
 
 void setMotor(int speed){
-  analogWrite(13, current_speed);
+  if(reverse){
+    analogWrite(REV_PIN, speed);
+    analogWrite(FW_PIN, 0);
+  } else {
+    analogWrite(FW_PIN, speed);
+    analogWrite(REV_PIN, 0);
+  }
+}
+
+
+void setPwmFrequency(int pin, int divisor) {
+  byte mode;
+  if(pin == 5 || pin == 6 || pin == 9 || pin == 10) {
+    switch(divisor) {
+      case 1: mode = 0x01; break;
+      case 8: mode = 0x02; break;
+      case 64: mode = 0x03; break;
+      case 256: mode = 0x04; break;
+      case 1024: mode = 0x05; break;
+      default: return;
+    }
+    if(pin == 5 || pin == 6) {
+      TCCR0B = TCCR0B & 0b11111000 | mode;
+    } else {
+      TCCR1B = TCCR1B & 0b11111000 | mode;
+    }
+  } else if(pin == 3 || pin == 11) {
+    switch(divisor) {
+      case 1: mode = 0x01; break;
+      case 8: mode = 0x02; break;
+      case 32: mode = 0x03; break;
+      case 64: mode = 0x04; break;
+      case 128: mode = 0x05; break;
+      case 256: mode = 0x06; break;
+      case 1024: mode = 0x7; break;
+      default: return;
+    }
+    TCCR2B = TCCR2B & 0b11111000 | mode;
+  }
 }
 
